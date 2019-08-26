@@ -1,0 +1,127 @@
+[$default byte_order: "LittleEndian"]
+[(cpp) namespace: "emboss::usbpd"]
+
+
+enum Revision:
+  -- 6.2.1.1.5
+  ONE_POINT_ZERO   = 0b00
+  TWO_POINT_ZERO   = 0b01
+  THREE_POINT_ZERO = 0b10
+  RESERVED         = 0b11
+
+
+enum PortDataRole:
+  -- 6.2.1.1.6
+  UFP = 0b0
+  DFP = 0b1
+
+
+enum PowerPortRole:
+  -- 6.2.1.1.4
+  SINK   = 0b0
+  SOURCE = 0b1
+
+
+enum CablePlug:
+  -- 6.2.1.1.7
+  DFP_OR_UFP        = 0b0
+  CABLE_PLUG_OR_VPD = 0b1
+
+
+struct MesageHeader:
+  -- 6.2.1.1
+  15 [+1]  Flag           extended          -- 6.2.1.1.1
+  12 [+3]  UInt           num_data_objects  -- 6.2.1.1.2
+  9  [+3]  UInt           message_id        -- 6.2.1.1.3
+  8  [+1]  PowerPortRole  power_port_role   -- 6.2.1.1.4
+  8  [+1]  CablePlug      cable_plug        -- 6.2.1.1.7
+  6  [+2]  Revision       revision          -- 6.2.1.1.5
+  5  [+1]  PortDataRole   port_data_role    -- 6.2.1.1.6
+  0  [+5]  UInt           message_type      -- 6.2.1.1.8
+
+
+struct ExtendedMessageHeader:
+  -- 6.2.1.2
+  15 [+1]  Flag  chunked        -- 6.2.1.2.1
+  11 [+4]  UInt  chunk_number   -- 6.2.1.2.2
+  10 [+1]  Flag  request_chunk  -- 6.2.1.2.3
+  9  [+1]  UInt  reserved       -- 1.4.2.10
+  0  [+9]  UInt  data_size      -- 6.2.1.2.4
+
+
+enum ControlMessageType:
+  -- 6.3
+  GOOD_CRC                = 0b0_0001  -- 6.3.1
+  GOTO_MIN                = 0b0_0010  -- 6.3.2
+  ACCEPT                  = 0b0_0011  -- 6.3.3
+  REJECT                  = 0b0_0100  -- 6.3.4
+  PING                    = 0b0_0101  -- 6.3.5
+  PS_RDY                  = 0b0_0110  -- 6.3.6
+  GET_SOURCE_CAP          = 0b0_0111  -- 6.3.7
+  GET_SINK_CAP            = 0b0_1000  -- 6.3.8
+  DR_SWAP                 = 0b0_1001  -- 6.3.9
+  PR_SWAP                 = 0b0_1010  -- 6.3.10
+  VCONN_SWAP              = 0b0_1011  -- 6.3.11
+  WAIT                    = 0b0_1100  -- 6.3.12
+  SOFT_RESET              = 0b0_1101  -- 6.3.13
+  NOT_SUPPORTED           = 0b1_0000  -- 6.3.14
+  GET_SOURCE_CAP_EXTENDED = 0b1_0001  -- 6.3.15
+  GET_STATUS              = 0b1_0010  -- 6.3.16
+  FR_SWAP                 = 0b1_0011  -- 6.3.17
+  GET_PPS_STATUS          = 0b1_0100  -- 6.3.18
+  GET_COUNTRY_CODES       = 0b1_0101  -- 6.3.19
+  GET_SINK_CAP_EXTENDED   = 0b1_0110  -- 6.3.20
+
+
+enum DataMessageType:
+  -- 6.4
+  SOURCE_CAPABILITIES = 0b0_0001
+  REQUEST             = 0b0_0010
+  BIST                = 0b0_0011
+  SINK_CAPABILITIES   = 0b0_0100
+  BATTERY_STATUS      = 0b0_0101
+  ALERT               = 0b0_0110
+  GET_COUNTRY_INFO    = 0b0_0111
+  VENDOR_DEFINED      = 0b0_1111
+
+
+enum PowerDataObjectType:
+  FIXED_SUPPLY                = 0b00
+  BATTERY                     = 0b01
+  VARIABLE_SUPPLY             = 0b10
+  AUGMENTED_POWER_DATA_OBJECT = 0b11
+
+
+enum AugmentedPowerDataObjectType:
+  PROGRAMMABLE_POWER_SUPPLY = 0b00
+
+
+enum PeakCurrent:
+  PEAK_CURRENT_EQUALS_IOC = 0b00
+  OVERLOAD_150_125_200    = 0b01
+  OVERLOAD_200_150_125    = 0b10
+  OVERLOAD_200_175_150    = 0b11
+
+
+struct PowerDataObject:
+  -- 6.4.1.2.2
+  0  [+4]  bits:
+    30 [+2]         PowerDataObjctType  type
+
+  if type == PowerDataObjectType.FIXED_SUPPLY:
+    0  [+4]  bits:
+      29 [+1]       Flag                dual_role_power
+      28 [+1]       Flag                usb_suspend_supported
+      27 [+1]       Flag                unconstrained_power
+      26 [+1]       Flag                usb_communications_capable
+      25 [+1]       Flag                dual_role_data
+      24 [+1]       Flag                unchunked_extended_messages_supported
+      20 [+2]       PeakCurrent         peak_current
+      10 [+10]      UInt                voltage_50mv
+      0  [+10]      UInt                maximum_current_10ma
+
+  if type == PowerDataObjectType.VARIABLE_SUPPLY:
+    0  [+4]  bits:
+      20 [+10]      UInt                maximum_voltage_50mv
+      10 [+10]      UInt                minimum_voltage_50mv
+      0  [+10]      UInt                maximum_current_10ma
