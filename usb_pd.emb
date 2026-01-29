@@ -28,7 +28,7 @@ enum CablePlug:
   CABLE_PLUG_OR_VPD = 0b1
 
 
-struct MesageHeader:
+struct MessageHeader:
   -- 6.2.1.1
   15 [+1]  Flag           extended          -- 6.2.1.1.1
   12 [+3]  UInt           num_data_objects  -- 6.2.1.1.2
@@ -75,14 +75,14 @@ enum ControlMessageType:
 
 enum DataMessageType:
   -- 6.4
-  SOURCE_CAPABILITIES = 0b0_0001
-  REQUEST             = 0b0_0010
-  BIST                = 0b0_0011
-  SINK_CAPABILITIES   = 0b0_0100
-  BATTERY_STATUS      = 0b0_0101
-  ALERT               = 0b0_0110
-  GET_COUNTRY_INFO    = 0b0_0111
-  VENDOR_DEFINED      = 0b0_1111
+  SOURCE_CAPABILITIES = 0b0_0001  -- 6.4.1
+  REQUEST             = 0b0_0010  -- 6.4.2
+  BIST                = 0b0_0011  -- 6.4.3
+  SINK_CAPABILITIES   = 0b0_0100  -- 6.4.4
+  BATTERY_STATUS      = 0b0_0101  -- 6.4.5
+  ALERT               = 0b0_0110  -- 6.4.6
+  GET_COUNTRY_INFO    = 0b0_0111  -- 6.4.7
+  VENDOR_DEFINED      = 0b0_1111  -- 6.4.8
 
 
 enum PowerDataObjectType:
@@ -106,7 +106,7 @@ enum PeakCurrent:
 struct PowerDataObject:
   -- 6.4.1.2.2
   0  [+4]  bits:
-    30 [+2]         PowerDataObjctType  type
+    30 [+2]         PowerDataObjectType  type
 
   if type == PowerDataObjectType.FIXED_SUPPLY:
     0  [+4]  bits:
@@ -125,3 +125,18 @@ struct PowerDataObject:
       20 [+10]      UInt                maximum_voltage_50mv
       10 [+10]      UInt                minimum_voltage_50mv
       0  [+10]      UInt                maximum_current_10ma
+
+  if type == PowerDataObjectType.BATTERY:
+    0  [+4]  bits:
+      20 [+10]      UInt                maximum_voltage_50mv
+      10 [+10]      UInt                minimum_voltage_50mv
+      0  [+10]      UInt                maximum_power_250mw
+
+  if type == PowerDataObjectType.AUGMENTED_POWER_DATA_OBJECT:
+    0  [+4]  bits:
+      30 [+2]       AugmentedPowerDataObjectType  apdo_type
+      28 [+2]       UInt                reserved
+      27 [+1]       Flag                pps_power_limited
+      17 [+8]       UInt                maximum_voltage_100mv
+      8  [+8]       UInt                minimum_voltage_100mv
+      0  [+7]       UInt                maximum_current_50ma
